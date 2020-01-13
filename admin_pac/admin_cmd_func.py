@@ -8,7 +8,7 @@ from message_strings import message_stings
 from main import dp, user_info, Exercise
 from config import admin_id
 from important_functions import send_msg, send_chat_act, delete_waiting_message, save_json
-from admin.send_everyone import check_admin_command
+from admin_pac.send_everyone import check_admin_command
 from aiogram.dispatcher.storage import FSMContext
 from aiogram.types import Message
 
