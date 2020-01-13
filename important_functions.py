@@ -1,5 +1,4 @@
 # coding=utf-8
-import asyncio
 import json
 from datetime import datetime
 import locale

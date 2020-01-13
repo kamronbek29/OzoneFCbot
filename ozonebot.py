@@ -2,7 +2,7 @@
 import json
 import locale
 from datetime import datetime
-from operator import itemgetter, attrgetter
+from operator import itemgetter
 
 from aiogram.utils import executor
 from aiogram.dispatcher.storage import FSMContext
@@ -12,7 +12,7 @@ from buttons import user_buttons, reject_button
 from main import dp, user_info, Username, ADMIN_LIST_COMMANDS, competition_db, Results, GetResult, GetVideo
 from config import admin_id
 
-from admin.admin import admin
+from admin_pac.admin import admin_func
 from message_strings import message_stings
 from important_functions import send_msg, on_startup, save_user_result, send_video_functions
 
@@ -28,7 +28,7 @@ async def admin_commands(message: Message):
     if message.text == '/admin':
         await send_msg(message.chat.id, 'admin_string')
         return
-    await admin(message)
+    await admin_func(message)
 
 
 ########################################################################################################################

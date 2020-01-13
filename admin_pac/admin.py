@@ -1,8 +1,8 @@
 # coding=utf-8
-from admin.admin_cmd_func import get_users_count_func, send_everyone_func, get_deleted_count, publish_exercise
+from admin_pac.admin_cmd_func import get_users_count_func, send_everyone_func, get_deleted_count, publish_exercise
 
 
-async def admin(message):
+async def admin_func(message):
     if message.text == '/get_users_count':
         await get_users_count_func(message)
 

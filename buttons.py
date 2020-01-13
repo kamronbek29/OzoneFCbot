@@ -1,6 +1,5 @@
 # coding=utf-8
-# from aiogram import types
-from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 
 
 ask_to_send_buttons = ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
