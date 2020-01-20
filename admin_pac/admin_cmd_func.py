@@ -1,7 +1,8 @@
 # coding=utf-8
+import calendar
 import time
 import locale
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from buttons import admin_sure_button, reject_button
 from message_strings import message_stings
@@ -60,6 +61,13 @@ async def get_deleted_count(message):
 
 
 async def publish_exercise(message):
+    my_date = datetime.today()
+    a = calendar.day_name[my_date.weekday()]
+
+    if a == 'воскресенье':
+        await send_msg(message.chat.id, 'Сегодня воскресенье, отдохните сами и дайте отдохунть другим)')
+        return
+
     today_date = datetime.today().strftime('%d-%B')
     await send_msg(message.chat.id, message_stings['ask_exercise'], format_msg=today_date, markup=reject_button)
     await Exercise.ask_exercise.set()
@@ -75,7 +83,11 @@ async def publish_exercise_state(message: Message, state: FSMContext):
     await state.update_data(exercise_for_today=message.text)
 
     today_date = datetime.today().strftime('%d-%B')
-    msg_to_send = message_stings['sure_to_publish'].format(today_date, message.text)
+    today_datetime = datetime.today()
+    date_tomorrow = timedelta(days=1)
+    tomorrow_date = (today_datetime + date_tomorrow).strftime('%d-%B')
+
+    msg_to_send = message_stings['sure_to_publish'].format(f'{today_date} и на {tomorrow_date}', message.text)
     await send_msg(message.chat.id, msg_to_send, markup=admin_sure_button)
     await Exercise.sure_to_publish.set()
 

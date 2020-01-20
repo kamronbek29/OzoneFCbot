@@ -1,7 +1,9 @@
 # coding=utf-8
 import json
 import locale
-from datetime import datetime
+import calendar
+
+from datetime import datetime, timedelta
 from operator import itemgetter
 
 from aiogram.utils import executor
@@ -67,15 +69,30 @@ async def ask_user_name_state(message: Message, state: FSMContext):
 
 @dp.message_handler(lambda message: message.text in ['Получить упражения', '/get_exercise'])
 async def get_exercise_command(message: Message):
-    today_date = datetime.today().strftime('%d-%B')
-    list_of_exercises = competition_db.get(today_date)
+    my_date = datetime.today()
+    a = calendar.day_name[my_date.weekday()]
+
+    if a == 'воскресенье':
+        await send_msg(message.chat.id, 'Сегодня воскресенье, отдохните сами и дайте отдохунть другим)')
+        return
+
+    date_today = datetime.today().strftime('%d-%B')
+    today_datetime = datetime.today()
+    one_day = timedelta(days=1)
+    tomorrow_date = (today_datetime + one_day).strftime('%d-%B')
+    yesterday_date = (today_datetime - one_day).strftime('%d-%B')
+
+    list_of_exercises = competition_db.get(f'{date_today}:{tomorrow_date}')
+    if list_of_exercises is None:
+        list_of_exercises = competition_db.get(f'{yesterday_date}:{date_today}')
 
     if list_of_exercises is None:
-        await send_msg(message.chat.id, message_stings['no_exercise'], format_msg=today_date, markup=user_buttons)
+        await send_msg(message.chat.id, message_stings['no_exercise'],
+                       format_msg=date_today, markup=user_buttons)
     else:
         make_json_obj = json.loads(list_of_exercises)
         list_of_exercises_str = make_json_obj['today_exercise']
-        format_msg = f'{today_date}\n\n{list_of_exercises_str}'
+        format_msg = f'{date_today}\n\n{list_of_exercises_str}'
         await send_msg(message.chat.id, message_stings['send_exercise'], format_msg=format_msg, markup=user_buttons)
 
 
@@ -84,8 +101,22 @@ async def get_exercise_command(message: Message):
 
 @dp.message_handler(lambda message: message.text in ['Участники соревнования', '/all_competitors'])
 async def all_competitors_command(message: Message, state: FSMContext):
-    today_date = datetime.today().strftime('%d-%B')
-    all_competitors = competition_db.get(today_date)
+    my_date = datetime.today()
+    a = calendar.day_name[my_date.weekday()]
+
+    if a == 'воскресенье':
+        await send_msg(message.chat.id, 'Сегодня воскресенье, отдохните сами и дайте отдохунть другим)')
+        return
+
+    date_today = datetime.today().strftime('%d-%B')
+    today_datetime = datetime.today()
+    one_day = timedelta(days=1)
+    tomorrow_date = (today_datetime + one_day).strftime('%d-%B')
+    yesterday_date = (today_datetime - one_day).strftime('%d-%B')
+
+    all_competitors = competition_db.get(f'{date_today}:{tomorrow_date}')
+    if all_competitors is None:
+        all_competitors = competition_db.get(f'{yesterday_date}:{date_today}')
 
     if all_competitors is not None:
         json_object = json.loads(all_competitors)
@@ -132,7 +163,7 @@ async def all_competitors_command(message: Message, state: FSMContext):
 
                 minutes = int((float(user_time) / 60))
                 seconds = int(float(user_time)) % 60
-                
+
                 if seconds < 10:
                     seconds = f'0{seconds}'
 
@@ -159,7 +190,7 @@ async def all_competitors_command(message: Message, state: FSMContext):
 
     else:
         await send_msg(message.chat.id, message_stings['no_exercise_to_compete'], markup=user_buttons,
-                       format_msg=today_date)
+                       format_msg=date_today)
         return
 
 
@@ -192,16 +223,23 @@ async def send_result_command(message: Message, state: FSMContext):
 
 @dp.message_handler(lambda message: message.text in ['Опубликовать результат', '/send_result'])
 async def send_result_command(message: Message):
-    today_date = datetime.today().strftime('%d-%B')
-    list_of_exercises = competition_db.get(today_date)
+    date_today = datetime.today().strftime('%d-%B')
+    today_datetime = datetime.today()
+    one_day = timedelta(days=1)
+    tomorrow_date = (today_datetime + one_day).strftime('%d-%B')
+    yesterday_date = (today_datetime - one_day).strftime('%d-%B')
+
+    list_of_exercises = competition_db.get(f'{date_today}:{tomorrow_date}')
+    if list_of_exercises is None:
+        list_of_exercises = competition_db.get(f'{yesterday_date}:{date_today}')
 
     if list_of_exercises is None:
-        await send_msg(message.chat.id, message_stings['no_exercise'], format_msg=today_date, markup=user_buttons)
+        await send_msg(message.chat.id, message_stings['no_exercise'], format_msg=date_today, markup=user_buttons)
         return
 
     make_json_obj = json.loads(list_of_exercises)
     list_of_exercises_str = make_json_obj['today_exercise']
-    msg_to_send = message_stings['exercise_done'].format(today_date, list_of_exercises_str)
+    msg_to_send = message_stings['exercise_done'].format(date_today, list_of_exercises_str)
 
     await send_msg(message.chat.id, msg_to_send, markup=reject_button)
     await Results.ask_time.set()
@@ -314,9 +352,25 @@ async def ask_video_state(message: Message, state: FSMContext):
 
 @dp.message_handler(lambda message: message.text in ['Отправить видео', '/send_video'])
 async def all_competitors_command(message: Message, state: FSMContext):
-    today_date = datetime.today().strftime('%d-%B')
-    all_competitors = competition_db.get(today_date)
+    my_date = datetime.today()
+    a = calendar.day_name[my_date.weekday()]
+
+    if a == 'воскресенье':
+        await send_msg(message.chat.id, 'Сегодня воскресенье, отдохните сами и дайте отдохунть другим)')
+        return
+
+    date_today = datetime.today().strftime('%d-%B')
+    today_datetime = datetime.today()
+    one_day = timedelta(days=1)
+    tomorrow_date = (today_datetime + one_day).strftime('%d-%B')
+    yesterday_date = (today_datetime - one_day).strftime('%d-%B')
+
+    all_competitors = competition_db.get(f'{date_today}:{tomorrow_date}')
+    if all_competitors is None:
+        all_competitors = competition_db.get(f'{yesterday_date}:{date_today}')
+
     username = str(user_info.get(message.from_user.id), 'utf-8')
+
     if all_competitors is not None:
         json_object = json.loads(all_competitors)
         list_of_users_info = json_object['competitors']
@@ -345,7 +399,7 @@ async def all_competitors_command(message: Message, state: FSMContext):
             await send_msg(message.chat.id, 'Похоже, что у вас нету результатов без видео', markup=user_buttons)
             await state.finish()
     else:
-        await send_msg(message.chat.id, message_stings['no_exercise'], format_msg=today_date, markup=user_buttons)
+        await send_msg(message.chat.id, message_stings['no_exercise'], format_msg=date_today, markup=user_buttons)
         return
 
 

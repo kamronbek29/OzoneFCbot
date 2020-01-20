@@ -1,6 +1,6 @@
 # coding=utf-8
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import locale
 
 from aiogram.types.reply_keyboard import ReplyKeyboardRemove
@@ -62,24 +62,30 @@ async def send_video_functions(chat_id, file_to_send, caption=None):
         await bot.send_animation(chat_id, file_to_send, caption=caption)
 
 
-async def save_json(exercise=None, to_publish=None, competitors=None):
+async def save_json(exercise=None, to_publish=None, competitors=None, datedate=None):
     try:
         today_date = datetime.today().strftime('%d-%B')
+        today_datetime = datetime.today()
+        date_tomorrow = timedelta(days=1)
+        tomorrow_date = (today_datetime + date_tomorrow).strftime('%d-%B')
 
+        if datedate is None:
+            to_publish_date = f'{today_date}:{tomorrow_date}'
+        else:
+            to_publish_date = datedate
         if to_publish:
             json_object = {
                 'today_exercise': str(exercise),
                 'competitors': None
             }
-            competition_db.set(today_date, json.dumps(json_object))
+            competition_db.set(to_publish_date, json.dumps(json_object))
 
         if competitors:
             json_object = {
                 'today_exercise': str(exercise),
                 'competitors': competitors
             }
-
-            competition_db.set(today_date, json.dumps(json_object))
+            competition_db.set(to_publish_date, json.dumps(json_object))
 
         return None, True
     except Exception as err:
@@ -87,9 +93,17 @@ async def save_json(exercise=None, to_publish=None, competitors=None):
 
 
 async def save_user_result(user_id, user_time, video_id, video_file_url, competitors_list=None):
-    today_date = datetime.today().strftime('%d-%B')
+    date_today = datetime.today().strftime('%d-%B')
+    today_datetime = datetime.today()
+    one_day = timedelta(days=1)
+    tomorrow_date = (today_datetime + one_day).strftime('%d-%B')
+    yesterday_date = (today_datetime - one_day).strftime('%d-%B')
 
-    json_object = competition_db.get(today_date)
+    json_object = competition_db.get(f'{date_today}:{tomorrow_date}')
+    save_date = f'{date_today}:{tomorrow_date}'
+    if json_object is None:
+        save_date = f'{yesterday_date}:{date_today}'
+        json_object = competition_db.get(f'{yesterday_date}:{date_today}')
 
     if json_object is not None:
         json_object = json.loads(json_object)
@@ -119,7 +133,7 @@ async def save_user_result(user_id, user_time, video_id, video_file_url, competi
             else:
                 competitors_str = user_result
 
-        err, is_saved = await save_json(exercise=today_exercise, competitors=competitors_str)
+        err, is_saved = await save_json(exercise=today_exercise, competitors=competitors_str, datedate=save_date)
         print(err, is_saved)
 
 
