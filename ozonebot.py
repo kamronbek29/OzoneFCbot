@@ -99,7 +99,7 @@ async def all_competitors_command(message: Message, state: FSMContext):
 
             new_users_info = []
             for one_user_info in str_of_users_info:
-                one_user_info_js = json.loads(one_user_info)
+                one_user_info_js = json.loads(one_user_info.replace("'", '"'))
                 user_name = one_user_info_js['user_name']
 
                 user_time = one_user_info_js['user_time']
@@ -132,14 +132,19 @@ async def all_competitors_command(message: Message, state: FSMContext):
 
                 minutes = int((float(user_time) / 60))
                 seconds = int(float(user_time)) % 60
+                
+                if seconds < 10:
+                    seconds = f'0{seconds}'
 
                 result_time_minutes = f'{minutes}:{seconds}'
 
-                video_url = '[Ссылка на видео]({})'.format(user_info_json['user_video_url'])
-
-                result_button = KeyboardButton(f'Видео {i}ого участника')
-                buttons.append(f'Видео {i}ого участника')
-                result_markup.add(result_button)
+                if user_info_json['user_video_url'] == 'No video':
+                    video_url = 'Видео нет!'
+                else:
+                    video_url = '[Ссылка на видео]({})'.format(user_info_json['user_video_url'])
+                    result_button = KeyboardButton(f'Видео {i}ого участника')
+                    buttons.append(f'Видео {i}ого участника')
+                    result_markup.add(result_button)
 
                 user_result = f'{i}. {user_name} - {result_time_minutes} - {video_url}'
                 list_of_user_result.append(user_result)
@@ -172,6 +177,9 @@ async def send_result_command(message: Message, state: FSMContext):
         user_to_get = str(message.text).split('Видео ')[1].split('ого')[0]
         list_users_info = str(users_info[int(user_to_get) - 1]).replace("'", '"')
         user_video_result = json.loads(list_users_info)['user_video_id']
+        if user_video_result == 'No video':
+            await state.finish()
+            return
         await send_video_functions(message.chat.id, str(user_video_result), message.text)
         await GetResult.get_result.set()
     else:
