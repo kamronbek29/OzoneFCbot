@@ -40,6 +40,10 @@ async def admin_commands(message: Message):
 async def start_command(message: Message):
     is_user_exist = user_info.get(message.from_user.id)
     if not is_user_exist:
+        msg = '[{0}](tg://user?id={1}) начал использовать бот \nUser ID: {2}' \
+              .format(message.from_user.full_name, message.from_user.id, message.from_user.id)
+
+        await send_msg('-1001197338062', msg, markdown=True, channel=True)
         await send_msg(message.chat.id, message_stings['first_start_message'], format_msg=message.from_user.full_name)
         await Username.ask_username.set()
     else:
@@ -61,6 +65,12 @@ async def ask_user_name_state(message: Message, state: FSMContext):
     else:
         user_info.set(message.from_user.id, message.text)
         await send_msg(message.chat.id, message_stings['name_saved'], format_msg=message.text, markup=user_buttons)
+
+        msg = 'Пользователя [{0}](tg://user?id={1}) зовут {2}' \
+            .format(message.from_user.full_name, message.from_user.id, message.text)
+
+        await send_msg('-1001197338062', msg, markdown=True, channel=True)
+
         await state.finish()
 
 
