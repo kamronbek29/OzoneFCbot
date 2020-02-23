@@ -200,6 +200,12 @@ async def send_result_command(message: Message, state: FSMContext):
 
 @dp.message_handler(lambda message: message.text in ['Опубликовать результат', '/send_result'])
 async def send_result_command(message: Message):
+    my_date = datetime.today().weekday()
+
+    if int(my_date) == 6:
+        await send_msg(message.chat.id, 'Сегодня воскресенье, отдохните сами и дайте отдохунть другим)')
+        return
+
     list_of_exercises = competition_db.get('today exercise')
     if list_of_exercises is None:
         await send_msg(message.chat.id, message_stings['no_exercise'], markup=user_buttons)
@@ -315,6 +321,12 @@ async def send_result_command(message: Message, state: FSMContext):
 
 @dp.message_handler(lambda message: message.text in ['Опубликованные видео', '/get_videos'])
 async def get_all_videos(message: Message):
+    my_date = datetime.today().weekday()
+
+    if int(my_date) == 6:
+        await send_msg(message.chat.id, 'Сегодня воскресенье, отдохните сами и дайте отдохунть другим)')
+        return
+
     all_videos = competition_db.get('all videos')
     if all_videos is None:
         await send_msg(message.chat.id, 'no_video_yet')
