@@ -81,7 +81,7 @@ async def ask_user_name_state(message: Message, state: FSMContext):
 async def get_exercise_command(message: Message):
     my_date = datetime.today().weekday()
 
-    if int(my_date) == 7:
+    if int(my_date) == 6:
         await send_msg(message.chat.id, 'Сегодня воскресенье, отдохните сами и дайте отдохунть другим)')
         return
 
@@ -102,7 +102,7 @@ async def get_exercise_command(message: Message):
 async def all_competitors_command(message: Message, state: FSMContext):
     my_date = datetime.today().weekday()
 
-    if int(my_date) == 7:
+    if int(my_date) == 6:
         await send_msg(message.chat.id, 'Сегодня воскресенье, отдохните сами и дайте отдохунть другим)')
         return
 
@@ -273,7 +273,7 @@ async def ask_time_state(message: Message, state: FSMContext):
 async def all_competitors_command(message: Message, state: FSMContext):
     my_date = datetime.today().weekday()
 
-    if int(my_date) == 7:
+    if int(my_date) == 6:
         await send_msg(message.chat.id, 'Сегодня воскресенье, отдохните сами и дайте отдохунть другим)')
         return
 

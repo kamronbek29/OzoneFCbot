@@ -63,7 +63,7 @@ async def get_deleted_count(message):
 async def publish_exercise(message):
     my_date = datetime.today().weekday()
 
-    if int(my_date) == 7:
+    if int(my_date) == 6:
         await send_msg(message.chat.id, 'Сегодня воскресенье, отдохните сами и дайте отдохунть другим)')
         return
 
