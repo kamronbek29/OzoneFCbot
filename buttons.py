@@ -27,5 +27,6 @@ user_button1 = KeyboardButton('Участники соревнования')
 user_button2 = KeyboardButton('Получить упражения')
 user_button3 = KeyboardButton('Опубликовать результат')
 user_button4 = KeyboardButton('Отправить видео')
-all_user_buttons = user_button1, user_button2, user_button3, user_button4
+user_button5 = KeyboardButton('Опубликованные видео')
+all_user_buttons = user_button1, user_button2, user_button3, user_button4, user_button5
 user_buttons.add(*all_user_buttons)

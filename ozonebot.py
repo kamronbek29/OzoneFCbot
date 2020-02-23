@@ -79,31 +79,20 @@ async def ask_user_name_state(message: Message, state: FSMContext):
 
 @dp.message_handler(lambda message: message.text in ['Получить упражения', '/get_exercise'])
 async def get_exercise_command(message: Message):
-    my_date = datetime.today()
-    a = calendar.day_name[my_date.weekday()]
+    my_date = datetime.today().weekday()
 
-    if a == 'воскресенье':
+    if int(my_date) == 7:
         await send_msg(message.chat.id, 'Сегодня воскресенье, отдохните сами и дайте отдохунть другим)')
         return
 
-    date_today = datetime.today().strftime('%d-%B')
-    today_datetime = datetime.today()
-    one_day = timedelta(days=1)
-    tomorrow_date = (today_datetime + one_day).strftime('%d-%B')
-    yesterday_date = (today_datetime - one_day).strftime('%d-%B')
-
-    list_of_exercises = competition_db.get(f'{date_today}:{tomorrow_date}')
-    if list_of_exercises is None:
-        list_of_exercises = competition_db.get(f'{yesterday_date}:{date_today}')
+    list_of_exercises = competition_db.get('today exercise')
 
     if list_of_exercises is None:
-        await send_msg(message.chat.id, message_stings['no_exercise'],
-                       format_msg=date_today, markup=user_buttons)
+        await send_msg(message.chat.id, message_stings['no_exercise'], markup=user_buttons)
     else:
         make_json_obj = json.loads(list_of_exercises)
         list_of_exercises_str = make_json_obj['today_exercise']
-        format_msg = f'{date_today}\n\n{list_of_exercises_str}'
-        await send_msg(message.chat.id, message_stings['send_exercise'], format_msg=format_msg, markup=user_buttons)
+        await send_msg(message.chat.id, message_stings['send_exercise'], format_msg=list_of_exercises_str, markup=user_buttons)
 
 
 ########################################################################################################################
@@ -111,23 +100,13 @@ async def get_exercise_command(message: Message):
 
 @dp.message_handler(lambda message: message.text in ['Участники соревнования', '/all_competitors'])
 async def all_competitors_command(message: Message, state: FSMContext):
-    my_date = datetime.today()
-    a = calendar.day_name[my_date.weekday()]
+    my_date = datetime.today().weekday()
 
-    if a == 'воскресенье':
+    if int(my_date) == 7:
         await send_msg(message.chat.id, 'Сегодня воскресенье, отдохните сами и дайте отдохунть другим)')
         return
 
-    date_today = datetime.today().strftime('%d-%B')
-    today_datetime = datetime.today()
-    one_day = timedelta(days=1)
-    tomorrow_date = (today_datetime + one_day).strftime('%d-%B')
-    yesterday_date = (today_datetime - one_day).strftime('%d-%B')
-
-    all_competitors = competition_db.get(f'{date_today}:{tomorrow_date}')
-    if all_competitors is None:
-        all_competitors = competition_db.get(f'{yesterday_date}:{date_today}')
-
+    all_competitors = competition_db.get('today exercise')
     if all_competitors is not None:
         json_object = json.loads(all_competitors)
         list_of_users_info = json_object['competitors']
@@ -137,6 +116,7 @@ async def all_competitors_command(message: Message, state: FSMContext):
             return
         else:
             str_of_users_info = str(list_of_users_info).split('!!!')
+            print(str_of_users_info)
 
             new_users_info = []
             for one_user_info in str_of_users_info:
@@ -146,15 +126,11 @@ async def all_competitors_command(message: Message, state: FSMContext):
                 user_time = one_user_info_js['user_time']
                 time_in_seconds = float(str(user_time).split(':')[0]) * 60 + float(str(user_time).split(':')[1])
 
-                video_id = one_user_info_js['user_video_id']
-                user_video_url = one_user_info_js['user_video_url']
-
                 user_result = {
                     "user_name": user_name,
                     "user_time": int(time_in_seconds),
-                    "user_video_id": video_id,
-                    "user_video_url": user_video_url
                 }
+
                 new_users_info.append(user_result)
             sorted_user_infos = sorted(new_users_info, key=itemgetter('user_time'), reverse=False)
 
@@ -179,15 +155,7 @@ async def all_competitors_command(message: Message, state: FSMContext):
 
                 result_time_minutes = f'{minutes}:{seconds}'
 
-                if user_info_json['user_video_url'] == 'No video':
-                    video_url = 'Видео нет!'
-                else:
-                    video_url = '[Ссылка на видео]({})'.format(user_info_json['user_video_url'])
-                    result_button = KeyboardButton(f'Видео {i}ого участника')
-                    buttons.append(f'Видео {i}ого участника')
-                    result_markup.add(result_button)
-
-                user_result = f'{i}. {user_name} - {result_time_minutes} - {video_url}'
+                user_result = f'{i}. {user_name} - {result_time_minutes}'
                 list_of_user_result.append(user_result)
 
             await state.update_data(users_info=str_of_users_info)
@@ -199,8 +167,7 @@ async def all_competitors_command(message: Message, state: FSMContext):
             await GetResult.get_result.set()
 
     else:
-        await send_msg(message.chat.id, message_stings['no_exercise_to_compete'], markup=user_buttons,
-                       format_msg=date_today)
+        await send_msg(message.chat.id, message_stings['no_exercise_to_compete'], markup=user_buttons)
         return
 
 
@@ -233,23 +200,14 @@ async def send_result_command(message: Message, state: FSMContext):
 
 @dp.message_handler(lambda message: message.text in ['Опубликовать результат', '/send_result'])
 async def send_result_command(message: Message):
-    date_today = datetime.today().strftime('%d-%B')
-    today_datetime = datetime.today()
-    one_day = timedelta(days=1)
-    tomorrow_date = (today_datetime + one_day).strftime('%d-%B')
-    yesterday_date = (today_datetime - one_day).strftime('%d-%B')
-
-    list_of_exercises = competition_db.get(f'{date_today}:{tomorrow_date}')
+    list_of_exercises = competition_db.get('today exercise')
     if list_of_exercises is None:
-        list_of_exercises = competition_db.get(f'{yesterday_date}:{date_today}')
-
-    if list_of_exercises is None:
-        await send_msg(message.chat.id, message_stings['no_exercise'], format_msg=date_today, markup=user_buttons)
+        await send_msg(message.chat.id, message_stings['no_exercise'], markup=user_buttons)
         return
 
     make_json_obj = json.loads(list_of_exercises)
     list_of_exercises_str = make_json_obj['today_exercise']
-    msg_to_send = message_stings['exercise_done'].format(date_today, list_of_exercises_str)
+    msg_to_send = message_stings['exercise_done'].format(list_of_exercises_str)
 
     await send_msg(message.chat.id, msg_to_send, markup=reject_button)
     await Results.ask_time.set()
@@ -292,19 +250,15 @@ async def ask_time_state(message: Message, state: FSMContext):
                 seconds = f'0{seconds}'
 
             user_time_result = f'{minutes}:{seconds}'
-
-            msg_to_send = message_stings['send_video'].format(user_time_result, user_time_result)
-            await send_msg(message.chat.id, msg_to_send, markup=reject_button)
-
-            await state.update_data(user_time=message.text)
-            await Results.ask_video.set()
+            await save_user_result(message.from_user.id, user_time_result)
+            await send_msg(message.chat.id, 'results_successfully_saved', format_msg=user_time_result)
+            await state.finish()
 
         elif minutes.isdigit() and seconds.isdigit():
-            msg_to_send = message_stings['send_video'].format(message.text, message.text)
-            await send_msg(message.chat.id, msg_to_send, markup=reject_button)
-
-            await state.update_data(user_time=message.text)
-            await Results.ask_video.set()
+            user_time_result = f'{minutes}:{seconds}'
+            await save_user_result(message.from_user.id, user_time_result)
+            await send_msg(message.chat.id, 'results_successfully_saved', format_msg=user_time_result)
+            await state.finish()
 
         else:
             await send_msg(message.chat.id, message_stings['time_latter'],
@@ -312,105 +266,24 @@ async def ask_time_state(message: Message, state: FSMContext):
             await Results.ask_time.set()
 
 
-@dp.message_handler(state=Results.ask_video, content_types=['video', 'text'])
-async def ask_video_state(message: Message, state: FSMContext):
-    if message.text == 'Отменить ⛔️' or message.text == '/start':
-        await send_msg(message.chat.id, message_stings['rejected'], markup=user_buttons)
-        await state.finish()
-        return
-
-    elif message.video:
-        data = await state.get_data()
-        user_time = data.get('user_time')
-        user_sent_video_duration = message.video.duration
-        time_in_seconds = float(str(user_time).split(':')[0]) * 60 + float(str(user_time).split(':')[1])
-
-        if time_in_seconds > user_sent_video_duration:
-            minutes = int((float(user_sent_video_duration) / 60))
-            seconds = int(float(user_sent_video_duration)) % 60
-
-            video_time = f'{minutes}:{seconds}'
-            msg_to_send = message_stings['incorrect_video'].format(user_time, video_time)
-            await send_msg(message.chat.id, msg_to_send, markup=reject_button)
-            await Results.ask_video.set()
-            return
-
-        else:
-            video_file_url = await message.video.get_url()
-            await save_user_result(message.from_user.id, user_time, message.video.file_id, video_file_url)
-
-        video_file_url = await message.video.get_url()
-        msg_to_send = message_stings['results_successfully_saved'].format(user_time, video_file_url)
-        await send_msg(message.chat.id, msg_to_send, markdown=True, markup=user_buttons)
-        await state.finish()
-
-    else:
-        if message.text == '/later':
-            data = await state.get_data()
-            user_time = data.get('user_time')
-            await save_user_result(message.from_user.id, user_time, None, None)
-            await send_msg(message.chat.id, 'later', format_msg=user_time, markup=user_buttons)
-            await state.finish()
-        else:
-            await send_msg(message.chat.id, 'choose_correct_action')
-            await Results.ask_video.set()
-            return
-
-
 ########################################################################################################################
 
 
 @dp.message_handler(lambda message: message.text in ['Отправить видео', '/send_video'])
 async def all_competitors_command(message: Message, state: FSMContext):
-    my_date = datetime.today()
-    a = calendar.day_name[my_date.weekday()]
+    my_date = datetime.today().weekday()
 
-    if a == 'воскресенье':
+    if int(my_date) == 7:
         await send_msg(message.chat.id, 'Сегодня воскресенье, отдохните сами и дайте отдохунть другим)')
         return
 
-    date_today = datetime.today().strftime('%d-%B')
-    today_datetime = datetime.today()
-    one_day = timedelta(days=1)
-    tomorrow_date = (today_datetime + one_day).strftime('%d-%B')
-    yesterday_date = (today_datetime - one_day).strftime('%d-%B')
-
-    all_competitors = competition_db.get(f'{date_today}:{tomorrow_date}')
-    if all_competitors is None:
-        all_competitors = competition_db.get(f'{yesterday_date}:{date_today}')
-
-    username = str(user_info.get(message.from_user.id), 'utf-8')
-
-    if all_competitors is not None:
-        json_object = json.loads(all_competitors)
-        list_of_users_info = json_object['competitors']
-
-        if list_of_users_info is None:
-            await send_msg(message.chat.id, message_stings['no_competitors'], markup=user_buttons)
-            return
-        else:
-            str_of_users_info = str(list_of_users_info).split('!!!')
-            for user_result_info in str_of_users_info:
-                user_result_info = user_result_info.replace("'", '"')
-                user_info_result = json.loads(user_result_info)
-
-                if user_info_result['user_name'] == username:
-                    user_time = user_info_result['user_time']
-
-                    if user_info_result['user_video_id'] == 'No video':
-                        message_to_send = message_stings['send_video_state'].format(user_time, user_time)
-                        await send_msg(message.chat.id, message_to_send, markup=reject_button)
-
-                        await state.update_data(user_time=user_time)
-                        await state.update_data(list_of_users_info=list_of_users_info)
-                        await GetVideo.get_video.set()
-                        return
-
-            await send_msg(message.chat.id, 'Похоже, что у вас нету результатов без видео', markup=user_buttons)
-            await state.finish()
-    else:
-        await send_msg(message.chat.id, message_stings['no_exercise'], format_msg=date_today, markup=user_buttons)
+    list_of_exercises = competition_db.get('today exercise')
+    if list_of_exercises is None:
+        await send_msg(message.chat.id, message_stings['no_exercise'], markup=user_buttons)
         return
+
+    await send_msg(message.chat.id, 'send_video', markup=reject_button)
+    await GetVideo.get_video.set()
 
 
 @dp.message_handler(state=GetVideo.get_video, content_types=['video', 'text'])
@@ -421,41 +294,34 @@ async def send_result_command(message: Message, state: FSMContext):
         return
 
     elif message.video:
-        data = await state.get_data()
-        user_time = data.get('user_time')
-        list_of_users_info = data.get('list_of_users_info')
-
-        user_sent_video_duration = message.video.duration
-        time_in_seconds = float(str(user_time).split(':')[0]) * 60 + float(str(user_time).split(':')[1])
-
-        if time_in_seconds > user_sent_video_duration:
-            minutes = int((float(user_sent_video_duration) / 60))
-            seconds = int(float(user_sent_video_duration)) % 60
-
-            video_time = f'{minutes}:{seconds}'
-            msg_to_send = message_stings['incorrect_video'].format(user_time, video_time)
-            await send_msg(message.chat.id, msg_to_send, markup=reject_button)
-            await Results.ask_video.set()
-            return
-
+        video_id = message.video.file_id
+        print(video_id)
+        expire_time = competition_db.ttl('today exercise')
+        all_videos = competition_db.get('all videos')
+        if all_videos is None:
+            competition_db.set('all videos', video_id, ex=expire_time)
         else:
-            str_of_users_info = str(list_of_users_info).split('!!!')
-            for user_result in str_of_users_info:
-                if user_time in user_result:
-                    str_of_users_info.pop(str_of_users_info.index(user_result))
+            all_videos_id_list = str(all_videos, 'utf-8').split(', ')
+            all_videos_id_list.append(video_id)
+            all_videos_str = ', '.join(all_videos_id_list)
+            competition_db.set('all videos', all_videos_str, ex=expire_time)
 
-            video_file_url = await message.video.get_url()
-            await save_user_result(message.from_user.id, user_time, message.video.file_id, video_file_url,
-                                   competitors_list=str_of_users_info)
-
-        video_file_url = await message.video.get_url()
-        msg_to_send = message_stings['results_successfully_saved'].format(user_time, video_file_url)
-        await send_msg(message.chat.id, msg_to_send, markdown=True, markup=user_buttons)
         await state.finish()
+        await send_msg(message.chat.id, 'video_saved')
     else:
         await send_msg(message.chat.id, message_stings['choose_correct_action'])
         await GetVideo.get_video.set()
 
+
+@dp.message_handler(lambda message: message.text in ['Опубликованные видео', '/get_videos'])
+async def get_all_videos(message: Message):
+    all_videos = competition_db.get('all videos')
+    if all_videos is None:
+        await send_msg(message.chat.id, 'no_video_yet')
+    else:
+        all_videos_ids = str(all_videos, 'utf-8').split(', ')
+        for video_id in all_videos_ids:
+            await send_video_functions(message.chat.id, video_id)
 
 if __name__ == '__main__':
     executor.start_polling(dp, on_startup=on_startup, skip_updates=True)
